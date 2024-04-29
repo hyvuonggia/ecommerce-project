@@ -2,6 +2,8 @@ import { Component } from '@angular/core';
 import { ProductService } from '../../services/product.service';
 import { Product } from '../../common/product';
 import { ActivatedRoute } from '@angular/router';
+import { CartItem } from '../../common/cart-item';
+import { CartService } from '../../services/cart.service';
 
 @Component({
   selector: 'app-product-list',
@@ -18,10 +20,11 @@ export class ProductListComponent {
   pageSize: number = 5;
   totalElements: number = 0;
 
-  previousKeyword: string = ""
+  previousKeyword: string = '';
 
   constructor(
     private productService: ProductService,
+    private cartService: CartService,
     private route: ActivatedRoute
   ) {}
 
@@ -45,12 +48,11 @@ export class ProductListComponent {
 
     // if keyword is different, reset page number
     if (this.previousKeyword != keyword) {
-        this.pageNumber = 1;
+      this.pageNumber = 1;
     }
 
     this.previousKeyword = keyword;
     console.log(`keyword=${keyword}, pageNumber=${this.pageNumber}`);
-    
 
     this.productService
       .searchProductPaginate(this.pageNumber - 1, this.pageSize, keyword)
@@ -91,12 +93,20 @@ export class ProductListComponent {
     this.listProducts();
   }
 
-  processResult(){
+  processResult() {
     return (data: any) => {
-        this.products = data._embedded.products;
-        this.pageNumber = data.page.number + 1;
-        this.pageSize = data.page.size;
-        this.totalElements = data.page.totalElements;
-    }
+      this.products = data._embedded.products;
+      this.pageNumber = data.page.number + 1;
+      this.pageSize = data.page.size;
+      this.totalElements = data.page.totalElements;
+    };
+  }
+
+  addToCart(product: Product) {
+    console.log(`Adding to cart: ${product.name}, ${product.unitPrice}`);
+
+    const cartItem = new CartItem(product);
+
+    this.cartService.addToCart(cartItem);
   }
 }
